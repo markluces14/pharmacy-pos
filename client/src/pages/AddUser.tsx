@@ -1,6 +1,8 @@
 import React, { useState } from "react";
-import api from "../api/api";
 import type { NewUser } from "../types";
+import { api } from "../api/api";
+
+api.get("/adduser"); // calls /api/products
 
 const AddUser = () => {
   const [form, setForm] = useState<NewUser>({
@@ -25,7 +27,8 @@ const AddUser = () => {
       setMessage("User added successfully!");
       setForm({ name: "", email: "", password: "", role: "cashier" });
     } catch (err: any) {
-      setMessage("Failed to add user.");
+      console.error("Error adding user:", err); // log the error for debugging
+      setMessage("Failed to add user. Please try again.");
     }
   };
 

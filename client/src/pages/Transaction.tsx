@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
-import api from "../api/api";
 import type { Transaction } from "../types";
+import { api } from "../api/api";
+
+api.get("/transactions"); // calls /api/products
 
 const Transactions = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);

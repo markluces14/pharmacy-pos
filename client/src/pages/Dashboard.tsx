@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
-import api from "../api/api";
+import { api } from "../api/api";
+
+api.get("/dashboard"); // calls /api/products
 
 const Dashboard: React.FC = () => {
   const [totalSales, setTotalSales] = useState(0);

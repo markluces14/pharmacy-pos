@@ -1,13 +1,6 @@
-// src/context/AuthContext.tsx
-import React, {
-  createContext,
-  useState,
-  useEffect,
-  useMemo,
-  useContext,
-} from "react";
+import { createContext, useState, useEffect, useMemo, useContext } from "react";
 import type { ReactNode } from "react";
-import api from "../api/api";
+import { api } from "../api/api";
 
 interface User {
   id: number;
@@ -30,13 +23,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   // Fetch authenticated user
-  // Fetch authenticated user
   async function fetchUser() {
     setLoading(true);
     try {
-      // Get CSRF cookie first
-      await api.get("/sanctum/csrf-cookie");
-
+      await api.get("/sanctum/csrf-cookie"); // CSRF cookie for Laravel Sanctum
       const response = await api.get("/api/user");
       setUser(response.data);
     } catch (error) {
@@ -48,9 +38,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
-      await api.get("/sanctum/csrf-cookie"); // Always call this first!
+      await api.get("/sanctum/csrf-cookie"); // CSRF cookie for Sanctum
       const res = await api.post("/api/login", { email, password });
       setUser(res.data.user);
+      // Set token for future requests:
+      api.defaults.headers.common["Authorization"] = `Bearer ${res.data.token}`;
       return true;
     } catch (error) {
       setUser(null);
@@ -61,26 +53,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const logout = async () => {
     setLoading(true);
     try {
-      await api.post("/logout");
+      await api.post("/api/logout");
       setUser(null);
     } catch (error) {
-      // optionally handle error
+      // handle error optionally
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    // Optionally: attempt session restore only if desired
     const trySessionRestore = async () => {
       try {
         await api.get("/sanctum/csrf-cookie");
         await fetchUser();
-      } catch (error) {
+      } catch {
         setUser(null);
       }
     };
-
     trySessionRestore();
   }, []);
 

@@ -1,14 +1,13 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 
-class AuthController extends Controller
+class LoginController extends Controller
 {
     public function login(Request $request)
     {
@@ -23,10 +22,8 @@ class AuthController extends Controller
             return response()->json(['message' => 'Invalid credentials'], 401);
         }
 
-        // Delete old tokens
-        $user->tokens()->delete();
+        $user->tokens()->delete(); // optional: remove old tokens
 
-        // Create new token
         $token = $user->createToken('pharmacy-token')->plainTextToken;
 
         return response()->json([
@@ -35,11 +32,11 @@ class AuthController extends Controller
         ]);
     }
 
+
     public function logout(Request $request)
     {
-        Auth::guard('web')->logout();
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
+        // Revoke current token
+        $request->user()->currentAccessToken()->delete();
 
         return response()->json(['message' => 'Logged out successfully']);
     }
