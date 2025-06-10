@@ -1,30 +1,35 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
-use App\Models\Feedback;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Http;
 
 class FeedbackController extends Controller
 {
     public function store(Request $request)
     {
-        $request->validate([
-            'message' => 'required|string|min:5',
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
+            'message' => 'required|string|max:500',
         ]);
 
-        $feedback = Feedback::create([
-            'user_id' => Auth::id(),
-            'message' => $request->message,
+        $response = Http::post('https://hook.eu2.make.com/ya7rb34vgnqw4416ejbxou6y5n7ned16', [
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'message' => $validated['message'],
         ]);
 
-        return response()->json($feedback, 201);
+        return response()->json([
+            'message' => $response->successful()
+                ? 'Thank you for your feedback!'
+                : 'Failed to submit feedback',
+            'success' => $response->successful()
+        ], $response->status());
     }
-
     public function index()
     {
-        return Feedback::with('user')->latest()->get();
+        return view('feedback.feedback');
     }
 }

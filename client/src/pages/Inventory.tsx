@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from "react";
+import api from "../api/api";
 import type { Product } from "../types";
-import { api } from "../api/api";
 
-api.get("/inventory"); // calls /api/products
+const PRIMARY = "#2E4A70";
+const ACCENT = "#24B0BA";
+const LIGHT_BG = "#F0F2F2";
 
 const Inventory = () => {
   const [products, setProducts] = useState<Product[]>([]);
+  const [search, setSearch] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [formType, setFormType] = useState<"add" | "edit">("add");
   const [formProduct, setFormProduct] = useState<Partial<Product>>({});
@@ -20,7 +23,7 @@ const Inventory = () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await api.get("/products");
+      const res = await api.get("/api/products");
       setProducts(res.data);
     } catch (err) {
       setError("Failed to fetch products.");
@@ -44,9 +47,9 @@ const Inventory = () => {
   const handleDelete = async (id: number) => {
     if (window.confirm("Are you sure you want to delete this product?")) {
       try {
-        await api.delete(`/products/${id}`);
+        await api.delete(`/api/products/${id}`);
         fetchProducts();
-      } catch (err) {
+      } catch {
         alert("Failed to delete product.");
       }
     }
@@ -63,14 +66,17 @@ const Inventory = () => {
 
     try {
       if (formType === "add") {
-        await api.post("/products", { name, stock, price });
+        await api.post("/api/products", { name, stock, price });
       } else {
-        await api.put(`/products/${formProduct.id}`, { name, stock, price });
+        await api.put(`/api/products/${formProduct.id}`, {
+          name,
+          stock,
+          price,
+        });
       }
       setShowForm(false);
       fetchProducts();
-    } catch (err: any) {
-      console.error("Save product error:", err);
+    } catch (err) {
       alert("Failed to save product.");
     }
   };
@@ -83,54 +89,89 @@ const Inventory = () => {
     }
   };
 
-  return (
-    <div className="container mt-4">
-      <h2>Inventory Management</h2>
-      <button className="btn btn-primary mb-3" onClick={openAddForm}>
-        Add Product
-      </button>
+  const filteredProducts = products.filter((product) =>
+    product.name.toLowerCase().includes(search.toLowerCase())
+  );
 
-      {loading && <p>Loading products...</p>}
+  return (
+    <div className="container py-4">
+      <h2 className="mb-4" style={{ color: PRIMARY }}>
+        Inventory Management
+      </h2>
+
+      <div className="d-flex justify-content-between align-items-center mb-3">
+        <button
+          className="btn"
+          style={{
+            backgroundColor: ACCENT,
+            color: "#fff",
+            borderRadius: "0.5rem",
+          }}
+          onClick={openAddForm}
+        >
+          + Add Product
+        </button>
+        <input
+          type="text"
+          className="form-control"
+          placeholder="Search products..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          style={{ maxWidth: "300px" }}
+        />
+      </div>
+
+      {loading && (
+        <div className="text-center text-muted my-4">
+          <div className="spinner-border text-secondary" role="status">
+            <span className="visually-hidden">Loading...</span>
+          </div>
+        </div>
+      )}
+
       {error && <div className="alert alert-danger">{error}</div>}
 
-      {!loading && products.length > 0 ? (
-        <table className="table table-striped table-bordered">
-          <thead className="table-dark">
-            <tr>
-              <th>ID</th>
-              <th>Name</th>
-              <th>Stock</th>
-              <th>Price (₱)</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {products.map((p) => (
-              <tr key={p.id}>
-                <td>{p.id}</td>
-                <td>{p.name}</td>
-                <td>{p.stock}</td>
-                <td>{p.price.toFixed(2)}</td>
-                <td>
-                  <button
-                    className="btn btn-sm btn-warning me-2"
-                    onClick={() => openEditForm(p)}
-                  >
-                    Edit
-                  </button>
-                  <button
-                    className="btn btn-sm btn-danger"
-                    onClick={() => handleDelete(p.id)}
-                  >
-                    Delete
-                  </button>
-                </td>
+      {!loading && filteredProducts.length > 0 ? (
+        <div className="table-responsive">
+          <table className="table table-bordered table-hover rounded shadow-sm">
+            <thead style={{ backgroundColor: PRIMARY, color: "#fff" }}>
+              <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Stock</th>
+                <th>Price (₱)</th>
+                <th>Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {filteredProducts.map((p) => (
+                <tr key={p.id}>
+                  <td>{p.id}</td>
+                  <td>{p.name}</td>
+                  <td>{p.stock}</td>
+                  <td>{Number(p.price).toFixed(2)}</td>
+                  <td>
+                    <button
+                      className="btn btn-sm me-2"
+                      style={{ backgroundColor: PRIMARY, color: "#fff" }}
+                      onClick={() => openEditForm(p)}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      className="btn btn-sm btn-danger"
+                      onClick={() => handleDelete(p.id)}
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       ) : (
-        !loading && <p>No products found.</p>
+        !loading && <p className="text-muted">No products found.</p>
       )}
 
       {/* Product Form Modal */}
@@ -141,16 +182,19 @@ const Inventory = () => {
           role="dialog"
           style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
         >
-          <div className="modal-dialog" role="document">
-            <div className="modal-content">
+          <div className="modal-dialog">
+            <div className="modal-content rounded">
               <form onSubmit={handleFormSubmit}>
-                <div className="modal-header">
+                <div
+                  className="modal-header"
+                  style={{ backgroundColor: PRIMARY, color: "#fff" }}
+                >
                   <h5 className="modal-title">
                     {formType === "add" ? "Add Product" : "Edit Product"}
                   </h5>
                   <button
                     type="button"
-                    className="btn-close"
+                    className="btn-close btn-close-white"
                     aria-label="Close"
                     onClick={handleCancel}
                   ></button>
@@ -172,7 +216,6 @@ const Inventory = () => {
                     <label className="form-label">Stock</label>
                     <input
                       type="number"
-                      min="0"
                       className="form-control"
                       value={formProduct.stock ?? ""}
                       onChange={(e) =>
@@ -181,6 +224,7 @@ const Inventory = () => {
                           stock: parseInt(e.target.value) || 0,
                         })
                       }
+                      min={0}
                       required
                     />
                   </div>
@@ -188,7 +232,6 @@ const Inventory = () => {
                     <label className="form-label">Price (₱)</label>
                     <input
                       type="number"
-                      min="0"
                       step="0.01"
                       className="form-control"
                       value={formProduct.price ?? ""}
@@ -198,12 +241,17 @@ const Inventory = () => {
                           price: parseFloat(e.target.value) || 0,
                         })
                       }
+                      min={0}
                       required
                     />
                   </div>
                 </div>
                 <div className="modal-footer">
-                  <button type="submit" className="btn btn-primary">
+                  <button
+                    type="submit"
+                    className="btn"
+                    style={{ backgroundColor: ACCENT, color: "#fff" }}
+                  >
                     {formType === "add" ? "Add" : "Update"}
                   </button>
                   <button

@@ -1,6 +1,6 @@
 import { createContext, useState, useEffect, useMemo, useContext } from "react";
 import type { ReactNode } from "react";
-import { api } from "../api/api";
+import api from "../api/api";
 
 interface User {
   id: number;
@@ -21,12 +21,13 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loggedOut, setLoggedOut] = useState(false); // <-- Add this
 
   // Fetch authenticated user
   async function fetchUser() {
     setLoading(true);
     try {
-      await api.get("/sanctum/csrf-cookie"); // CSRF cookie for Laravel Sanctum
+      await api.get("/sanctum/csrf-cookie");
       const response = await api.get("/api/user");
       setUser(response.data);
     } catch (error) {
@@ -38,11 +39,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
-      await api.get("/sanctum/csrf-cookie"); // CSRF cookie for Sanctum
+      await api.get("/sanctum/csrf-cookie");
       const res = await api.post("/api/login", { email, password });
       setUser(res.data.user);
-      // Set token for future requests:
       api.defaults.headers.common["Authorization"] = `Bearer ${res.data.token}`;
+      setLoggedOut(false); // <-- Reset on login
       return true;
     } catch (error) {
       setUser(null);
@@ -55,6 +56,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       await api.post("/api/logout");
       setUser(null);
+      setLoggedOut(true); // <-- Set flag
+      delete api.defaults.headers.common["Authorization"];
     } catch (error) {
       // handle error optionally
     } finally {
@@ -63,16 +66,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   useEffect(() => {
-    const trySessionRestore = async () => {
-      try {
-        await api.get("/sanctum/csrf-cookie");
-        await fetchUser();
-      } catch {
-        setUser(null);
-      }
-    };
-    trySessionRestore();
-  }, []);
+    if (!loggedOut) {
+      // <-- Only restore if not just logged out
+      const trySessionRestore = async () => {
+        try {
+          await api.get("/sanctum/csrf-cookie");
+          await fetchUser();
+        } catch {
+          setUser(null);
+        }
+      };
+      trySessionRestore();
+    }
+  }, [loggedOut]);
 
   const value = useMemo(
     () => ({ user, login, logout, loading }),

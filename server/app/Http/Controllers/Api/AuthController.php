@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 
+
 class AuthController extends Controller
 {
     public function login(Request $request)
@@ -37,10 +38,18 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
-        Auth::guard('web')->logout();
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
+        $user = $request->user();
+        if ($user && $user->currentAccessToken()) {
+            $user->currentAccessToken()->delete();
+        }
 
-        return response()->json(['message' => 'Logged out successfully']);
+        // For session-based logout (optional)
+        if ($request->hasSession()) {
+            Auth::guard('web')->logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+        }
+
+        return response()->json(['message' => 'Logged out']);
     }
 }

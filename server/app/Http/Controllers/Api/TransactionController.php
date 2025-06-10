@@ -49,6 +49,17 @@ class TransactionController extends Controller
             'items' => json_encode($data['items']),
         ]);
 
+        // Reduce stock for each product
+        foreach ($data['items'] as $item) {
+            if (isset($item['id'])) {
+                $product = \App\Models\Product::find($item['id']);
+                if ($product) {
+                    $product->stock = max(0, $product->stock - $item['quantity']);
+                    $product->save();
+                }
+            }
+        }
+
         return response()->json($transaction, 201);
     }
 }

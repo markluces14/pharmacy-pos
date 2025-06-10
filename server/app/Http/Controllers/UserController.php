@@ -9,21 +9,20 @@ use Illuminate\Validation\Rules\Password;
 
 class UserController extends Controller
 {
+
+    // Example: UserController@store
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name'     => 'required|string|max:255',
-            'email'    => 'required|email|unique:users,email',
-            'password' => ['required', Password::min(6)],
-            'role'     => 'required|in:admin,manager,cashier',
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email',
+            'password' => 'required|string|min:6',
+            'role' => 'required|string|in:admin,manager,cashier',
         ]);
 
-        $user = User::create([
-            'name'     => $validated['name'],
-            'email'    => $validated['email'],
-            'password' => Hash::make($validated['password']),
-            'role'     => $validated['role'],
-        ]);
+        $validated['password'] = bcrypt($validated['password']);
+
+        $user = User::create($validated);
 
         return response()->json($user, 201);
     }
