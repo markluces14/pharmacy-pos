@@ -7,12 +7,22 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\TransactionController;
-use App\Http\Controllers\Api\FeedbackController;
-use App\Http\Controllers\FeedbackController as ControllersFeedbackController;
+use App\Http\Controllers\FeedbackController;
 
+
+use App\Http\Controllers\Api\SlackWebhookController;
 // Public routes
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout']);
+Route::post('/feedback', [FeedbackController::class, 'store']);
+Route::get('/feedback', [FeedbackController::class, 'index']);
+Route::put('/users/{id}', [UserController::class, 'update']);
+Route::delete('/users/{id}', [UserController::class, 'destroy']);
+
+
+
+Route::post('/notify-slack', [SlackWebhookController::class, 'sendTransactionNotification']);
+
 
 // Protected routes with Sanctum
 Route::middleware('auth:sanctum')->group(function () {
@@ -20,7 +30,7 @@ Route::middleware('auth:sanctum')->group(function () {
         return $request->user();
     });
 
-    Route::get('/users', [UserController::class, 'index'])->middleware('role:admin');
+    Route::get('/users', [UserController::class, 'index']);
     Route::post('/users', [UserController::class, 'store']);
 
     Route::get('/dashboard-summary', [DashboardController::class, 'summary']);
@@ -34,8 +44,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/products/{id}', [ProductController::class, 'update'])->middleware(config('constants.ROLE_ADMIN_MANAGER'));
     Route::delete('/products/{id}', [ProductController::class, 'destroy'])->middleware(config('constants.ROLE_ADMIN_MANAGER'));
 
-    Route::post('/feedback', [ControllersFeedbackController::class, 'store']);
-    Route::get('/feedback', [ControllersFeedbackController::class, 'index'])->middleware('can:view-feedback');
 
     Route::post('/checkout', [TransactionController::class, 'store']);
 });

@@ -31,17 +31,20 @@ const Login: React.FC = () => {
       style={{ backgroundColor: "#F0F2F2" }}
     >
       <div
-        className="card shadow p-4"
+        className="card shadow p-4 text-center"
         style={{ width: "100%", maxWidth: "400px" }}
       >
-        <h3 className="text-center mb-4" style={{ color: "#2E4A70" }}>
+        {/* Logo inside the card */}
+        <img src="public/img/logo_2.png" alt="Logo" />
+
+        <h3 className="mb-4" style={{ color: "#2E4A70" }}>
           Pharmalink POS Login
         </h3>
 
         {error && <div className="alert alert-danger">{error}</div>}
 
         <form onSubmit={handleSubmit}>
-          <div className="mb-3">
+          <div className="mb-3 text-start">
             <label className="form-label">Email</label>
             <input
               type="email"
@@ -53,7 +56,7 @@ const Login: React.FC = () => {
             />
           </div>
 
-          <div className="mb-3">
+          <div className="mb-3 text-start">
             <label className="form-label">Password</label>
             <input
               type="password"

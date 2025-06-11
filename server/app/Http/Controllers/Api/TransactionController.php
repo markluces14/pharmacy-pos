@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Transaction;
+use App\Models\Product;
+use App\Services\SlackNotifier;
 use Illuminate\Support\Facades\Auth;
 
 class TransactionController extends Controller
@@ -49,16 +51,31 @@ class TransactionController extends Controller
             'items' => json_encode($data['items']),
         ]);
 
-        // Reduce stock for each product
+        $productDetails = [];
+
         foreach ($data['items'] as $item) {
             if (isset($item['id'])) {
-                $product = \App\Models\Product::find($item['id']);
+                $product = Product::find($item['id']);
                 if ($product) {
                     $product->stock = max(0, $product->stock - $item['quantity']);
                     $product->save();
+
+                    $productDetails[] = "- *{$product->name}* (Qty: {$item['quantity']}, New Stock: {$product->stock})";
                 }
             }
         }
+
+        $message = "*🧾 New Transaction Made!*\n"
+            . "*Transaction ID:* #{$transaction->id}\n"
+            . "*Cashier:* " . Auth::user()->name . "\n"
+            . "*Total:* ₱" . number_format($transaction->total, 2) . "\n"
+            . "*VAT:* ₱" . number_format($transaction->vat, 2) . "\n"
+            . "*Cash:* ₱" . number_format($transaction->cash, 2) . "\n"
+            . "*Change:* ₱" . number_format($transaction->change, 2) . "\n"
+            . "*Time:* " . now()->format('Y-m-d h:i A') . "\n"
+            . "\n*🧪 Products Sold:*\n" . implode("\n", $productDetails);
+
+        SlackNotifier::send($message);
 
         return response()->json($transaction, 201);
     }

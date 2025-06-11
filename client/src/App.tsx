@@ -1,7 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import PrivateRoute from "./components/PrivateRoute";
-import Navbar from "./components/Navbar";
+import Layout from "./components/Layout";
 
 import Dashboard from "./pages/Dashboard";
 import Products from "./pages/Product";
@@ -16,72 +16,46 @@ function App() {
   return (
     <AuthProvider>
       <Router>
-        <Navbar />
         <Routes>
           <Route path="/login" element={<Login />} />
 
+          {/* Wrap all protected pages with Layout */}
           <Route
-            path="/"
             element={
               <PrivateRoute allowedRoles={["admin", "manager", "cashier"]}>
-                <Dashboard />
+                <Layout />
               </PrivateRoute>
             }
-          />
-
-          <Route
-            path="/dashboard"
-            element={
-              <PrivateRoute allowedRoles={["admin", "manager", "cashier"]}>
-                <Dashboard />
-              </PrivateRoute>
-            }
-          />
-
-          <Route
-            path="/products"
-            element={
-              <PrivateRoute allowedRoles={["admin", "manager", "cashier"]}>
-                <Products />
-              </PrivateRoute>
-            }
-          />
-
-          <Route
-            path="/inventory"
-            element={
-              <PrivateRoute allowedRoles={["admin", "manager"]}>
-                <Inventory />
-              </PrivateRoute>
-            }
-          />
-
-          <Route
-            path="/add-user"
-            element={
-              <PrivateRoute allowedRoles={["admin"]}>
-                <AddUser />
-              </PrivateRoute>
-            }
-          />
-
-          <Route
-            path="/transactions"
-            element={
-              <PrivateRoute allowedRoles={["admin", "manager"]}>
-                <Transactions />
-              </PrivateRoute>
-            }
-          />
-
-          <Route
-            path="/feedback"
-            element={
-              <PrivateRoute allowedRoles={["admin", "manager", "cashier"]}>
-                <Feedback />
-              </PrivateRoute>
-            }
-          />
+          >
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/products" element={<Products />} />
+            <Route
+              path="/inventory"
+              element={
+                <PrivateRoute allowedRoles={["admin", "manager"]}>
+                  <Inventory />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/add-user"
+              element={
+                <PrivateRoute allowedRoles={["admin"]}>
+                  <AddUser />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/transactions"
+              element={
+                <PrivateRoute allowedRoles={["admin", "manager"]}>
+                  <Transactions />
+                </PrivateRoute>
+              }
+            />
+            <Route path="/feedback" element={<Feedback />} />
+          </Route>
 
           <Route path="*" element={<NotFound />} />
         </Routes>

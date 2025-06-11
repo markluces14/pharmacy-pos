@@ -2,6 +2,7 @@ import React, { useState } from "react";
 
 const PRIMARY = "#2E4A70";
 const ACCENT = "#24B0BA";
+const LIGHT_BG = "#F0F2F2";
 
 const FeedbackForm: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -41,124 +42,107 @@ const FeedbackForm: React.FC = () => {
 
       if (res.ok && data.success) {
         setIsSuccess(true);
-        setResponseMessage(
-          `Success! ${data.message} We've sent a confirmation to ${formData.email}.`
-        );
+        setResponseMessage("✅ Feedback submitted successfully!");
         setFormData({ name: "", email: "", message: "" });
       } else {
-        throw new Error(data.message || "Failed to submit feedback");
+        throw new Error(data.message || "Submission failed");
       }
     } catch (err: any) {
       setIsSuccess(false);
-      setResponseMessage(`Error: ${err.message}`);
+      setResponseMessage(`❌ ${err.message}`);
     } finally {
       setSubmitting(false);
-      setTimeout(() => setResponseMessage(null), 5000);
+      setTimeout(() => setResponseMessage(null), 4000);
     }
   };
 
   return (
     <div
-      className="container max-w-lg mx-auto rounded-xl shadow p-6 mt-6"
-      style={{ backgroundColor: "#F0F2F2" }}
+      className="w-full flex justify-center mt-10"
+      style={{ backgroundColor: LIGHT_BG }}
     >
-      <h2 className="text-2xl font-bold mb-5" style={{ color: PRIMARY }}>
-        Share Your Feedback
-      </h2>
-
-      <form onSubmit={handleSubmit} className="space-y-5">
-        <div>
-          <label className="block font-medium mb-1">Your Name</label>
-          <input
-            name="name"
-            type="text"
-            value={formData.name}
-            onChange={handleChange}
-            required
-            className="w-full p-2 border rounded-md focus:outline-none focus:ring-2"
-            style={{ borderColor: "#ccc", focusRingColor: ACCENT }}
-            placeholder="John Doe"
-          />
-        </div>
-
-        <div>
-          <label className="block font-medium mb-1">Email Address</label>
-          <input
-            name="email"
-            type="email"
-            value={formData.email}
-            onChange={handleChange}
-            required
-            className="w-full p-2 border rounded-md focus:outline-none focus:ring-2"
-            style={{ borderColor: "#ccc" }}
-            placeholder="you@example.com"
-          />
-        </div>
-
-        <div>
-          <label className="block font-medium mb-1">Your Feedback</label>
-          <textarea
-            name="message"
-            rows={4}
-            value={formData.message}
-            onChange={handleChange}
-            required
-            className="w-full p-2 border rounded-md focus:outline-none focus:ring-2"
-            style={{ borderColor: "#ccc" }}
-            placeholder="Your thoughts..."
-          />
-        </div>
-
-        <button
-          type="submit"
-          disabled={submitting}
-          className="w-full py-2 rounded-md text-white font-semibold shadow"
-          style={{
-            backgroundColor: PRIMARY,
-            opacity: submitting ? 0.8 : 1,
-            cursor: submitting ? "not-allowed" : "pointer",
-          }}
+      <div className="rounded-xl shadow-lg p-8 w-[32rem] bg-white">
+        <h2
+          className="text-2xl font-bold mb-6 text-center"
+          style={{ color: PRIMARY }}
         >
-          {submitting ? (
-            <span className="flex items-center justify-center gap-2">
-              <svg
-                className="w-5 h-5 animate-spin"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                />
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-                />
-              </svg>
-              Sending...
-            </span>
-          ) : (
-            "Submit Feedback"
-          )}
-        </button>
+          Share Your Feedback
+        </h2>
 
-        {responseMessage && (
-          <div
-            className={`p-3 rounded-md text-sm mt-2 ${
-              isSuccess
-                ? "text-green-800 bg-green-100"
-                : "text-red-800 bg-red-100"
-            }`}
-          >
-            {responseMessage}
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div>
+            <label className="block text-sm font-semibold mb-1 text-left text-gray-700">
+              Name:
+            </label>
+            <input
+              type="text"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              required
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#24B0BA]"
+              placeholder="John Doe"
+            />
           </div>
-        )}
-      </form>
+
+          <div>
+            <label className="block text-sm font-semibold mb-1 text-left text-gray-700">
+              Email:
+            </label>
+            <input
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              required
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#24B0BA]"
+              placeholder="you@example.com"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold mb-1 text-left text-gray-700">
+              Message:
+            </label>
+            <textarea
+              name="message"
+              rows={3} // reduced height
+              value={formData.message}
+              onChange={handleChange}
+              required
+              className="w-full px-3 py-2 border border-gray-300 rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-[#24B0BA]"
+              placeholder="Your message..."
+            />
+          </div>
+
+          <div className="flex justify-center">
+            <button
+              type="submit"
+              disabled={submitting}
+              className="px-8 py-2 rounded-md font-semibold text-white shadow-md transition"
+              style={{
+                backgroundColor: PRIMARY,
+                opacity: submitting ? 0.7 : 1,
+                cursor: submitting ? "not-allowed" : "pointer",
+              }}
+            >
+              {submitting ? "Submitting..." : "Submit"}
+            </button>
+          </div>
+
+          {responseMessage && (
+            <div
+              className={`text-sm text-center mt-3 px-3 py-2 rounded-md ${
+                isSuccess
+                  ? "bg-green-100 text-green-800"
+                  : "bg-red-100 text-red-800"
+              }`}
+            >
+              {responseMessage}
+            </div>
+          )}
+        </form>
+      </div>
     </div>
   );
 };

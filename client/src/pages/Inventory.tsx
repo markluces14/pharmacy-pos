@@ -100,6 +100,15 @@ const Inventory = () => {
       </h2>
 
       <div className="d-flex justify-content-between align-items-center mb-3">
+        <input
+          type="text"
+          className="form-control"
+          placeholder="Search products..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          style={{ maxWidth: "300px" }}
+        />
+
         <button
           className="btn"
           style={{
@@ -111,14 +120,6 @@ const Inventory = () => {
         >
           + Add Product
         </button>
-        <input
-          type="text"
-          className="form-control"
-          placeholder="Search products..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          style={{ maxWidth: "300px" }}
-        />
       </div>
 
       {loading && (

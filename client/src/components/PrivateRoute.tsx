@@ -3,12 +3,17 @@ import { Navigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 interface PrivateRouteProps {
-  allowedRoles: string[]; // ✅ Define allowedRoles
+  allowedRoles: string[];
   children: React.ReactElement;
 }
 
 const PrivateRoute = ({ allowedRoles, children }: PrivateRouteProps) => {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
+
+  // Wait for session check to complete
+  if (loading) {
+    return <div>Loading...</div>; // You can replace this with a spinner if you want
+  }
 
   if (!user) {
     return <Navigate to="/login" replace />;
